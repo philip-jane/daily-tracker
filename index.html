@@ -340,7 +340,7 @@
 <div class="table-wrap">
   <table>
     <colgroup>
-      <col><col><col><col><col><col><col><col><col><col><col><col>
+      <col><col><col><col><col><col><col><col><col><col><col>
     </colgroup>
     <thead>
       <tr class="group-row">
@@ -349,7 +349,6 @@
         <th colspan="2" class="reminders-header">reminders</th>
         <th colspan="3" class="checks-header">checks</th>
         <th class="hours-header">hours</th>
-        <th></th>
       </tr>
       <tr class="col-row">
         <th>date</th>
@@ -469,12 +468,10 @@ function renderBool(val) {
 }
 
 function makeScoreInput(rowIdx, field, val) {
-  const v = (val === null || val === undefined) ? '' : val;
-  return `<input type="number" min="1" max="5" step="1" value="${v}" placeholder="1-5"
-    onchange="updateField(${rowIdx},'${field}',this.value)"
-    onblur="finishEdit(${rowIdx})"
-    onkeydown="if(event.key==='Enter'||event.key==='Tab'){this.blur()}"
-    autofocus>`;
+  const opts = ['', '1', '2', '3', '4', '5'].map(o =>
+    `<option value="${o}" ${String(val)===o?'selected':''}>${o||'—'}</option>`
+  ).join('');
+  return `<select onchange="updateField(${rowIdx},'${field}',this.value)" onblur="finishEdit(${rowIdx})" autofocus>${opts}</select>`;
 }
 
 function makeBoolSelect(rowIdx, field, val) {
@@ -554,7 +551,6 @@ function renderTable(activeRow) {
       <td class="date-cell"><div class="cell-display">${row.date}</div></td>
       <td class="day-cell"><div class="cell-display">${getDayName(row.date)}</div></td>
       ${cells}
-      <td><button class="del-btn" onclick="deleteRow(${i})" title="delete row">×</button></td>
     </tr>`;
   }).join('');
 }
