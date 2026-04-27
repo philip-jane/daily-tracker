@@ -340,7 +340,7 @@
 <div class="table-wrap">
   <table>
     <colgroup>
-      <col><col><col><col><col><col><col><col><col><col><col>
+      <col><col><col><col><col><col><col><col><col><col><col><col>
     </colgroup>
     <thead>
       <tr class="group-row">
@@ -349,6 +349,7 @@
         <th colspan="2" class="reminders-header">reminders</th>
         <th colspan="3" class="checks-header">checks</th>
         <th class="hours-header">hours</th>
+        <th></th>
       </tr>
       <tr class="col-row">
         <th>date</th>
@@ -551,6 +552,7 @@ function renderTable(activeRow) {
       <td class="date-cell"><div class="cell-display">${row.date}</div></td>
       <td class="day-cell"><div class="cell-display">${getDayName(row.date)}</div></td>
       ${cells}
+      <td><button class="del-btn" onclick="deleteRow(${i})" title="delete row">×</button></td>
     </tr>`;
   }).join('');
 }
