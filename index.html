@@ -29,7 +29,8 @@ h1 { font-size: 1.75rem; font-weight: 600; letter-spacing: -0.03em; margin-botto
 .subtitle { font-size: 0.85rem; color: var(--text-muted); font-family: 'DM Mono', monospace; margin-bottom: 2rem; }
 
 /* ── Charts ── */
-.charts-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1rem; }
+.section-label { font-size: 0.7rem; font-family: 'DM Mono', monospace; font-weight: 500; letter-spacing: 0.08em; text-transform: uppercase; color: var(--text-muted); margin-bottom: 0.6rem; }
+.charts-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 2rem; }
 @media (max-width: 700px) { .charts-grid { grid-template-columns: 1fr; } }
 .chart-card { background: var(--surface); border: 0.5px solid var(--border); border-radius: var(--radius-lg); padding: 1rem 1.25rem 1.25rem; }
 .chart-label { font-size: 0.7rem; font-family: 'DM Mono', monospace; font-weight: 500; letter-spacing: 0.08em; text-transform: uppercase; color: var(--text-muted); margin-bottom: 0.75rem; display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
@@ -116,7 +117,9 @@ td select { width: 100%; padding: 0.5rem 0.75rem; border: none; background: tran
 <h1>daily tracker</h1>
 <p class="subtitle">health · happiness · confidence · hours</p>
 
+
 <!-- TOP CHARTS -->
+<p class="section-label">all time</p>
 <div class="charts-grid">
   <div class="chart-card">
     <div class="chart-label"><span class="dot" style="background:#c05621"></span>health score</div>
@@ -142,25 +145,25 @@ td select { width: 100%; padding: 0.5rem 0.75rem; border: none; background: tran
 </div>
 
 <!-- LAST 28 DAYS -->
+<p class="section-label">last 28 days</p>
 <div class="charts-grid" style="margin-bottom:1rem;">
   <div class="chart-card">
-    <div class="chart-label"><span class="dot" style="background:#c05621"></span>health — last 28 days</div>
+    <div class="chart-label"><span class="dot" style="background:#c05621"></span>health score</div>
     <div class="chart-wrap"><canvas id="chart28Health"></canvas></div>
   </div>
   <div class="chart-card">
-    <div class="chart-label"><span class="dot" style="background:#2563a8"></span>happiness — last 28 days</div>
+    <div class="chart-label"><span class="dot" style="background:#2563a8"></span>happiness score</div>
     <div class="chart-wrap"><canvas id="chart28Happiness"></canvas></div>
   </div>
   <div class="chart-card">
-    <div class="chart-label"><span class="dot" style="background:#7c3aed"></span>confidence — last 28 days</div>
+    <div class="chart-label"><span class="dot" style="background:#7c3aed"></span>confidence score</div>
     <div class="chart-wrap"><canvas id="chart28Confidence"></canvas></div>
   </div>
   <div class="chart-card">
     <div class="chart-label">
       <span class="dot" style="background:#0f766e"></span>work
       <span class="dot" style="background:#0891b2;margin-left:4px"></span>ps
-      <span class="dot" style="background:#374151;margin-left:4px"></span>total
-      <span style="font-size:0.62rem;color:var(--text-faint);margin-left:4px">— last 28 days</span>
+      <span class="dot" style="background:#374151;margin-left:4px"></span>total hours
     </div>
     <div class="chart-wrap"><canvas id="chart28Hours"></canvas></div>
   </div>
@@ -174,7 +177,7 @@ td select { width: 100%; padding: 0.5rem 0.75rem; border: none; background: tran
     <div class="reminder-item"><span class="reminder-num">2.</span><span class="reminder-text">Let go of what you can't control.</span></div>
     <div class="reminder-item"><span class="reminder-num">3.</span><span class="reminder-text">Picture the best version of yourself, then act like it.</span></div>
     <div class="reminder-item"><span class="reminder-num">4.</span><span class="reminder-text">Check your reminder app.</span></div>
-    <div class="reminder-item"><span class="reminder-num">5.</span><span class="reminder-text">Move your body today.</span></div>
+    <div class="reminder-item"><span class="reminder-num">5.</span><span class="reminder-text">Exercise.</span></div>
     <div class="reminder-item"><span class="reminder-num">6.</span><span class="reminder-text">You don't laugh because you're happy — you become happy because you laugh.</span></div>
   </div>
 </div>
@@ -302,7 +305,7 @@ function renderHour(val) {
 function makeScoreSelect(di, field, val) {
   const opts = ['','1','2','3','4','5'].map(o =>
     `<option value="${o}" ${String(val)===o?'selected':''}>${o||'—'}</option>`).join('');
-  return `<select onchange="updateField(${di},'${field}',this.value)" onblur="finishEdit()" autofocus>${opts}</select>`;
+  return `<select onchange="updateField(${di},'${field}',this.value);finishEdit();" autofocus>${opts}</select>`;
 }
 function makeHourInput(di, field, val) {
   const v = (val !== null && val !== undefined) ? val : '';
@@ -327,6 +330,15 @@ function updateField(di, field, value) {
   } else {
     const n = parseFloat(value);
     rows[ri][field] = (isNaN(n) || value==='') ? null : Math.round(n*10)/10;
+  }
+  // Auto-calculate total when work or ps hours change
+  if (field === 'workHours' || field === 'psHours') {
+    const w = rows[ri].workHours;
+    const p = rows[ri].psHours;
+    if (w !== null && p !== null) rows[ri].totalHours = Math.round((w + p) * 10) / 10;
+    else if (w !== null) rows[ri].totalHours = w;
+    else if (p !== null) rows[ri].totalHours = p;
+    else rows[ri].totalHours = null;
   }
   saveData();
 }
@@ -435,41 +447,54 @@ function buildHoursChart() {
 // ── Last 28 days ─────────────────────────────────────────────────────────────
 function last28Rows() {
   const sr = sortedRows();
-  return sr.slice(Math.max(0, sr.length - 28));
+  if (!sr.length) return [];
+  const latest = parseDate(sr[sr.length-1].date);
+  const cutoff = new Date(latest);
+  cutoff.setDate(cutoff.getDate() - 27);
+  return sr.filter(r => { const d = parseDate(r.date); return d && d >= cutoff; });
 }
 
+// Running cumulative average within the 28-day window for a score field
 function build28ScoreChart(id, field, color) {
-  const data = last28Rows()
-    .filter(r => r[field] !== null && r[field] !== undefined)
-    .map(r => ({ x: toISO(r.date), y: Number(r[field]) })).filter(p => p.x);
+  const window = last28Rows().filter(r => r[field] !== null && r[field] !== undefined);
+  let sum = 0, count = 0;
+  const data = window.map(r => {
+    sum += Number(r[field]); count++;
+    return { x: toISO(r.date), y: Math.round(sum / count * 10) / 10 };
+  }).filter(p => p.x);
 
   if (charts[id]) charts[id].destroy();
   charts[id] = new Chart(document.getElementById(id), {
     type: 'line',
     data: { datasets: [{ data, borderColor:color, backgroundColor:color+'22', borderWidth:2, pointRadius:4, pointBackgroundColor:color, pointBorderColor:'#fff', pointBorderWidth:1.5, fill:true, tension:0.35 }] },
     options: { responsive:true, maintainAspectRatio:false,
-      plugins:{ legend:{display:false}, tooltip:{ callbacks:{ label: c=>`score: ${c.parsed.y}` } } },
+      plugins:{ legend:{display:false}, tooltip:{ callbacks:{ label: c=>`avg: ${c.parsed.y}` } } },
       scales:{ y: scoreY, x: baseTimeX }
     }
   });
 }
 
+// Running cumulative average within 28-day window for hour fields
 function build28HoursChart() {
-  function pts(field) {
-    return last28Rows()
-      .filter(r => r[field] !== null && r[field] !== undefined)
-      .map(r => ({ x: toISO(r.date), y: Number(r[field]) })).filter(p => p.x);
+  function runningAvg(field) {
+    const window = last28Rows().filter(r => r[field] !== null && r[field] !== undefined);
+    let sum = 0, count = 0;
+    return window.map(r => {
+      sum += Number(r[field]); count++;
+      return { x: toISO(r.date), y: Math.round(sum / count * 10) / 10 };
+    }).filter(p => p.x);
   }
+
   if (charts['chart28Hours']) charts['chart28Hours'].destroy();
   charts['chart28Hours'] = new Chart(document.getElementById('chart28Hours'), {
     type: 'line',
     data: { datasets: [
-      { label:'work',  data:pts('workHours'),  borderColor:'#0f766e', backgroundColor:'transparent', borderWidth:2, pointRadius:3, pointBackgroundColor:'#0f766e', pointBorderColor:'#fff', pointBorderWidth:1, fill:false, tension:0.35 },
-      { label:'ps',    data:pts('psHours'),    borderColor:'#0891b2', backgroundColor:'transparent', borderWidth:2, pointRadius:3, pointBackgroundColor:'#0891b2', pointBorderColor:'#fff', pointBorderWidth:1, fill:false, tension:0.35 },
-      { label:'total', data:pts('totalHours'), borderColor:'#374151', backgroundColor:'#37415112',   borderWidth:2, pointRadius:3, pointBackgroundColor:'#374151', pointBorderColor:'#fff', pointBorderWidth:1, fill:false, tension:0.35 },
+      { label:'work',  data:runningAvg('workHours'),  borderColor:'#0f766e', backgroundColor:'transparent', borderWidth:2, pointRadius:3, pointBackgroundColor:'#0f766e', pointBorderColor:'#fff', pointBorderWidth:1, fill:false, tension:0.35 },
+      { label:'ps',    data:runningAvg('psHours'),    borderColor:'#0891b2', backgroundColor:'transparent', borderWidth:2, pointRadius:3, pointBackgroundColor:'#0891b2', pointBorderColor:'#fff', pointBorderWidth:1, fill:false, tension:0.35 },
+      { label:'total', data:runningAvg('totalHours'), borderColor:'#374151', backgroundColor:'#37415112',   borderWidth:2, pointRadius:3, pointBackgroundColor:'#374151', pointBorderColor:'#fff', pointBorderWidth:1, fill:false, tension:0.35 },
     ]},
     options: { responsive:true, maintainAspectRatio:false,
-      plugins:{ legend:{display:false}, tooltip:{ mode:'index', intersect:false, callbacks:{ label: c=>`${c.dataset.label}: ${c.parsed.y}h` } } },
+      plugins:{ legend:{display:false}, tooltip:{ mode:'index', intersect:false, callbacks:{ label: c=>`${c.dataset.label} avg: ${c.parsed.y}h` } } },
       scales:{ y: hoursY, x: baseTimeX }
     }
   });
