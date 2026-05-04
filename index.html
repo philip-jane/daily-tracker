@@ -8,302 +8,107 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns@3.0.0/dist/chartjs-adapter-date-fns.bundle.min.js"></script>
 <style>
-  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+:root {
+  --bg: #f7f6f2; --surface: #ffffff;
+  --border: #e2e0d8; --border-strong: #c8c5bb;
+  --text: #1a1917; --text-muted: #6b6960; --text-faint: #9a9890;
+  --accent: #2d5a27; --accent-light: #e8f0e7;
+  --radius: 8px; --radius-lg: 12px;
+}
+@media (prefers-color-scheme: dark) {
   :root {
-    --bg: #f7f6f2;
-    --surface: #ffffff;
-    --border: #e2e0d8;
-    --border-strong: #c8c5bb;
-    --text: #1a1917;
-    --text-muted: #6b6960;
-    --text-faint: #9a9890;
-    --accent: #2d5a27;
-    --accent-light: #e8f0e7;
-    --health-color: #c05621;
-    --happiness-color: #2563a8;
-    --confidence-color: #7c3aed;
-    --hours-color: #0f766e;
-    --yes-bg: #e8f5e9;
-    --yes-text: #2e7d32;
-    --no-bg: #fce4ec;
-    --no-text: #c62828;
-    --radius: 8px;
-    --radius-lg: 12px;
+    --bg: #141412; --surface: #1e1d1a;
+    --border: #2e2d28; --border-strong: #3e3d38;
+    --text: #f0ede6; --text-muted: #908d84; --text-faint: #5a5850;
+    --accent: #5a9e53; --accent-light: #1a2e18;
   }
-  @media (prefers-color-scheme: dark) {
-    :root {
-      --bg: #141412;
-      --surface: #1e1d1a;
-      --border: #2e2d28;
-      --border-strong: #3e3d38;
-      --text: #f0ede6;
-      --text-muted: #908d84;
-      --text-faint: #5a5850;
-      --accent: #5a9e53;
-      --accent-light: #1a2e18;
-      --yes-bg: #1a2e18;
-      --yes-text: #81c784;
-      --no-bg: #2e1a1a;
-      --no-text: #ef9a9a;
-    }
-  }
-  body {
-    font-family: 'Syne', sans-serif;
-    background: var(--bg);
-    color: var(--text);
-    min-height: 100vh;
-    padding: 2rem;
-  }
-  h1 {
-    font-size: 1.75rem;
-    font-weight: 600;
-    letter-spacing: -0.03em;
-    margin-bottom: 0.25rem;
-  }
-  .subtitle {
-    font-size: 0.85rem;
-    color: var(--text-muted);
-    font-family: 'DM Mono', monospace;
-    margin-bottom: 2rem;
-  }
+}
+body { font-family: 'Syne', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; padding: 2rem; }
+h1 { font-size: 1.75rem; font-weight: 600; letter-spacing: -0.03em; margin-bottom: 0.25rem; }
+.subtitle { font-size: 0.85rem; color: var(--text-muted); font-family: 'DM Mono', monospace; margin-bottom: 2rem; }
 
-  /* Charts grid */
-  .charts-grid {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 1rem;
-    margin-bottom: 2rem;
-  }
-  @media (max-width: 700px) {
-    .charts-grid { grid-template-columns: 1fr; }
-  }
-  .chart-card {
-    background: var(--surface);
-    border: 0.5px solid var(--border);
-    border-radius: var(--radius-lg);
-    padding: 1rem 1.25rem 1.25rem;
-  }
-  .chart-label {
-    font-size: 0.7rem;
-    font-family: 'DM Mono', monospace;
-    font-weight: 500;
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
-    color: var(--text-muted);
-    margin-bottom: 0.75rem;
-  }
-  .chart-label span {
-    display: inline-block;
-    width: 8px;
-    height: 8px;
-    border-radius: 50%;
-    margin-right: 6px;
-    vertical-align: middle;
-    position: relative;
-    top: -1px;
-  }
-  .chart-wrap {
-    position: relative;
-    height: 160px;
-  }
+/* ── Charts ── */
+.charts-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1rem; }
+@media (max-width: 700px) { .charts-grid { grid-template-columns: 1fr; } }
+.chart-card { background: var(--surface); border: 0.5px solid var(--border); border-radius: var(--radius-lg); padding: 1rem 1.25rem 1.25rem; }
+.chart-label { font-size: 0.7rem; font-family: 'DM Mono', monospace; font-weight: 500; letter-spacing: 0.08em; text-transform: uppercase; color: var(--text-muted); margin-bottom: 0.75rem; display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+.dot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+.chart-wrap { position: relative; height: 160px; }
+.chart-wrap.tall { height: 210px; }
 
-  /* Spreadsheet section */
-  .section-header {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    margin-bottom: 1rem;
-  }
-  .section-title {
-    font-size: 0.7rem;
-    font-family: 'DM Mono', monospace;
-    font-weight: 500;
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
-    color: var(--text-muted);
-  }
-  .add-btn {
-    font-family: 'Syne', sans-serif;
-    font-size: 0.8rem;
-    font-weight: 500;
-    color: var(--accent);
-    background: var(--accent-light);
-    border: 0.5px solid var(--accent);
-    border-radius: var(--radius);
-    padding: 0.4rem 0.9rem;
-    cursor: pointer;
-    transition: opacity 0.15s;
-  }
-  .add-btn:hover { opacity: 0.8; }
+/* ── Monthly summary ── */
+.monthly-card { background: var(--surface); border: 0.5px solid var(--border); border-radius: var(--radius-lg); padding: 1.25rem; margin-bottom: 1rem; }
+.monthly-header { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 0.5rem; margin-bottom: 1rem; }
+.monthly-title { font-size: 0.7rem; font-family: 'DM Mono', monospace; font-weight: 500; letter-spacing: 0.08em; text-transform: uppercase; color: var(--text-muted); }
+.month-tabs { display: flex; gap: 0.4rem; flex-wrap: wrap; }
+.month-tab { font-family: 'DM Mono', monospace; font-size: 0.68rem; font-weight: 500; padding: 0.2rem 0.55rem; border-radius: 20px; border: 0.5px solid var(--border); background: transparent; color: var(--text-muted); cursor: pointer; transition: all 0.15s; }
+.month-tab:hover { border-color: var(--border-strong); }
+.month-tab.active { background: var(--accent-light); color: var(--accent); border-color: var(--accent); }
+.monthly-stats { display: grid; grid-template-columns: repeat(5, 1fr); gap: 0.75rem; margin-bottom: 1.25rem; }
+@media (max-width: 600px) { .monthly-stats { grid-template-columns: repeat(3, 1fr); } }
+.stat-box { background: var(--bg); border-radius: var(--radius); padding: 0.75rem 0.9rem; }
+.stat-label { font-size: 0.62rem; font-family: 'DM Mono', monospace; text-transform: uppercase; letter-spacing: 0.07em; color: var(--text-faint); margin-bottom: 0.3rem; }
+.stat-value { font-size: 1.4rem; font-weight: 600; letter-spacing: -0.02em; line-height: 1; }
+.stat-sub { font-size: 0.65rem; color: var(--text-faint); font-family: 'DM Mono', monospace; margin-top: 0.2rem; }
 
-  .table-wrap {
-    background: var(--surface);
-    border: 0.5px solid var(--border);
-    border-radius: var(--radius-lg);
-    overflow: hidden;
-    overflow-x: auto;
-  }
-  table {
-    width: 100%;
-    border-collapse: collapse;
-    min-width: 820px;
-    table-layout: fixed;
-  }
-  colgroup col:nth-child(1) { width: 90px; }
-  colgroup col:nth-child(2) { width: 90px; }
-  colgroup col:nth-child(3) { width: 70px; }
-  colgroup col:nth-child(4) { width: 80px; }
-  colgroup col:nth-child(5) { width: 90px; }
-  colgroup col:nth-child(6) { width: 115px; }
-  colgroup col:nth-child(7) { width: 180px; }
-  colgroup col:nth-child(8) { width: 80px; }
-  colgroup col:nth-child(9) { width: 75px; }
-  colgroup col:nth-child(10) { width: 120px; }
-  colgroup col:nth-child(11) { width: 90px; }
-  colgroup col:nth-child(12) { width: 40px; }
+/* ── Reminders ── */
+.reminders-card { background: var(--surface); border: 0.5px solid var(--border); border-radius: var(--radius-lg); padding: 1.25rem; margin-bottom: 1rem; }
+.reminders-title { font-size: 0.7rem; font-family: 'DM Mono', monospace; font-weight: 500; letter-spacing: 0.08em; text-transform: uppercase; color: var(--text-muted); margin-bottom: 1rem; }
+.reminders-list { display: flex; flex-direction: column; gap: 0.6rem; }
+.reminder-item { display: flex; align-items: flex-start; gap: 0.75rem; }
+.reminder-num { font-family: 'DM Mono', monospace; font-size: 0.7rem; color: var(--text-faint); min-width: 18px; margin-top: 0.05rem; }
+.reminder-text { font-size: 0.9rem; color: var(--text); line-height: 1.4; }
 
-  thead tr.group-row th {
-    background: var(--bg);
-    font-size: 0.65rem;
-    font-family: 'DM Mono', monospace;
-    font-weight: 500;
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
-    color: var(--text-faint);
-    padding: 0.5rem 0.75rem 0.3rem;
-    text-align: center;
-    border-bottom: 0.5px solid var(--border);
-  }
-  thead tr.group-row th.scores-header { color: #2e7d32; background: #f1f8f0; }
-  thead tr.group-row th.reminders-header { color: #1565c0; background: #e8f0fd; }
-  thead tr.group-row th.checks-header { color: #6a1b9a; background: #f3e8fd; }
-  thead tr.group-row th.hours-header { color: #00695c; background: #e0f5f3; }
-  @media (prefers-color-scheme: dark) {
-    thead tr.group-row th.scores-header { color: #81c784; background: #1a2e18; }
-    thead tr.group-row th.reminders-header { color: #90caf9; background: #0d1b2e; }
-    thead tr.group-row th.checks-header { color: #ce93d8; background: #1e1228; }
-    thead tr.group-row th.hours-header { color: #80cbc4; background: #0d201e; }
-  }
-  thead tr.col-row th {
-    background: var(--surface);
-    font-size: 0.7rem;
-    font-family: 'DM Mono', monospace;
-    font-weight: 500;
-    color: var(--text-muted);
-    padding: 0.5rem 0.75rem;
-    text-align: left;
-    border-bottom: 0.5px solid var(--border-strong);
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-  }
-  tbody tr {
-    border-bottom: 0.5px solid var(--border);
-    transition: background 0.1s;
-  }
-  tbody tr:last-child { border-bottom: none; }
-  tbody tr:hover { background: var(--bg); }
-  tbody tr.editing { background: var(--accent-light); }
+/* ── Table ── */
+.section-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 1rem; margin-top: 0; }
+.section-title { font-size: 0.7rem; font-family: 'DM Mono', monospace; font-weight: 500; letter-spacing: 0.08em; text-transform: uppercase; color: var(--text-muted); }
+.add-btn { font-family: 'Syne', sans-serif; font-size: 0.8rem; font-weight: 500; color: var(--accent); background: var(--accent-light); border: 0.5px solid var(--accent); border-radius: var(--radius); padding: 0.4rem 0.9rem; cursor: pointer; transition: opacity 0.15s; }
+.add-btn:hover { opacity: 0.8; }
+.table-wrap { background: var(--surface); border: 0.5px solid var(--border); border-radius: var(--radius-lg); overflow: hidden; overflow-x: auto; }
+table { width: 100%; border-collapse: collapse; min-width: 660px; table-layout: fixed; }
+colgroup col:nth-child(1) { width: 82px; }
+colgroup col:nth-child(2) { width: 95px; }
+colgroup col:nth-child(3) { width: 72px; }
+colgroup col:nth-child(4) { width: 82px; }
+colgroup col:nth-child(5) { width: 92px; }
+colgroup col:nth-child(6) { width: 88px; }
+colgroup col:nth-child(7) { width: 78px; }
+colgroup col:nth-child(8) { width: 78px; }
+colgroup col:nth-child(9) { width: 36px; }
 
-  td {
-    padding: 0;
-    font-size: 0.82rem;
-    vertical-align: middle;
-  }
-  td .cell-display {
-    padding: 0.55rem 0.75rem;
-    cursor: pointer;
-    min-height: 38px;
-    display: flex;
-    align-items: center;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-  }
-  td.date-cell .cell-display, td.day-cell .cell-display {
-    font-family: 'DM Mono', monospace;
-    font-size: 0.75rem;
-    color: var(--text-muted);
-    cursor: default;
-  }
-  td input[type="number"] {
-    width: 100%;
-    padding: 0.55rem 0.75rem;
-    border: none;
-    border-radius: 0;
-    background: transparent;
-    font-family: 'Syne', sans-serif;
-    font-size: 0.82rem;
-    color: var(--text);
-    outline: 2px solid var(--accent);
-    outline-offset: -2px;
-  }
-  td select {
-    width: 100%;
-    padding: 0.55rem 0.75rem;
-    border: none;
-    border-radius: 0;
-    background: transparent;
-    font-family: 'Syne', sans-serif;
-    font-size: 0.82rem;
-    color: var(--text);
-    outline: 2px solid var(--accent);
-    outline-offset: -2px;
-    cursor: pointer;
-    -webkit-appearance: none;
-    appearance: none;
-  }
-  .badge {
-    font-size: 0.7rem;
-    font-family: 'DM Mono', monospace;
-    font-weight: 500;
-    padding: 0.15rem 0.5rem;
-    border-radius: 20px;
-    display: inline-block;
-  }
-  .badge.yes { background: var(--yes-bg); color: var(--yes-text); }
-  .badge.no { background: var(--no-bg); color: var(--no-text); }
-  .score-dot {
-    display: inline-flex;
-    width: 22px;
-    height: 22px;
-    border-radius: 50%;
-    align-items: center;
-    justify-content: center;
-    font-size: 0.75rem;
-    font-family: 'DM Mono', monospace;
-    font-weight: 500;
-  }
-  .score-1 { background: #fce4ec; color: #c62828; }
-  .score-2 { background: #fff3e0; color: #e65100; }
-  .score-3 { background: #fffde7; color: #f57f17; }
-  .score-4 { background: #e8f5e9; color: #2e7d32; }
-  .score-5 { background: #e3f2fd; color: #1565c0; }
-  @media (prefers-color-scheme: dark) {
-    .score-1 { background: #3b0a0a; color: #ef9a9a; }
-    .score-2 { background: #2e1800; color: #ffcc80; }
-    .score-3 { background: #2a2400; color: #fff176; }
-    .score-4 { background: #0a2e0a; color: #a5d6a7; }
-    .score-5 { background: #0a1e3b; color: #90caf9; }
-  }
-  .del-btn {
-    background: none;
-    border: none;
-    color: var(--text-faint);
-    cursor: pointer;
-    font-size: 0.9rem;
-    padding: 0.4rem 0.5rem;
-    line-height: 1;
-    display: block;
-    width: 100%;
-    text-align: center;
-    transition: color 0.15s;
-  }
-  .del-btn:hover { color: #c62828; }
-  .empty-hint {
-    color: var(--text-faint);
-    font-size: 0.75rem;
-  }
+thead tr.group-row th { background: var(--bg); font-size: 0.62rem; font-family: 'DM Mono', monospace; font-weight: 500; letter-spacing: 0.08em; text-transform: uppercase; color: var(--text-faint); padding: 0.45rem 0.75rem 0.3rem; text-align: center; border-bottom: 0.5px solid var(--border); }
+thead tr.group-row th.g-scores { color: #2e7d32; background: #f1f8f0; }
+thead tr.group-row th.g-hours  { color: #00695c; background: #e0f5f3; }
+@media (prefers-color-scheme: dark) {
+  thead tr.group-row th.g-scores { color: #81c784; background: #1a2e18; }
+  thead tr.group-row th.g-hours  { color: #80cbc4; background: #0d201e; }
+}
+thead tr.col-row th { background: var(--surface); font-size: 0.68rem; font-family: 'DM Mono', monospace; font-weight: 500; color: var(--text-muted); padding: 0.45rem 0.75rem; text-align: left; border-bottom: 0.5px solid var(--border-strong); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+tbody tr { border-bottom: 0.5px solid var(--border); transition: background 0.1s; }
+tbody tr:last-child { border-bottom: none; }
+tbody tr:hover { background: var(--bg); }
+td { padding: 0; font-size: 0.82rem; vertical-align: middle; }
+td .cell-display { padding: 0.5rem 0.75rem; cursor: pointer; min-height: 36px; display: flex; align-items: center; }
+td.date-cell .cell-display, td.day-cell .cell-display { font-family: 'DM Mono', monospace; font-size: 0.73rem; color: var(--text-muted); cursor: default; }
+td input[type="number"] { width: 100%; padding: 0.5rem 0.75rem; border: none; background: transparent; font-family: 'Syne', sans-serif; font-size: 0.82rem; color: var(--text); outline: 2px solid var(--accent); outline-offset: -2px; }
+td select { width: 100%; padding: 0.5rem 0.75rem; border: none; background: transparent; font-family: 'Syne', sans-serif; font-size: 0.82rem; color: var(--text); outline: 2px solid var(--accent); outline-offset: -2px; cursor: pointer; -webkit-appearance: none; appearance: none; }
+.score-dot { display: inline-flex; width: 22px; height: 22px; border-radius: 50%; align-items: center; justify-content: center; font-size: 0.73rem; font-family: 'DM Mono', monospace; font-weight: 500; }
+.score-1 { background:#fce4ec; color:#c62828; }
+.score-2 { background:#fff3e0; color:#e65100; }
+.score-3 { background:#fffde7; color:#f57f17; }
+.score-4 { background:#e8f5e9; color:#2e7d32; }
+.score-5 { background:#e3f2fd; color:#1565c0; }
+@media (prefers-color-scheme: dark) {
+  .score-1 { background:#3b0a0a; color:#ef9a9a; }
+  .score-2 { background:#2e1800; color:#ffcc80; }
+  .score-3 { background:#2a2400; color:#fff176; }
+  .score-4 { background:#0a2e0a; color:#a5d6a7; }
+  .score-5 { background:#0a1e3b; color:#90caf9; }
+}
+.empty-hint { color: var(--text-faint); font-size: 0.75rem; }
+.del-btn { background: none; border: none; color: var(--text-faint); cursor: pointer; font-size: 0.9rem; padding: 0.35rem 0.5rem; display: block; width: 100%; text-align: center; transition: color 0.15s; }
+.del-btn:hover { color: #c62828; }
 </style>
 </head>
 <body>
@@ -311,27 +116,70 @@
 <h1>daily tracker</h1>
 <p class="subtitle">health · happiness · confidence · hours</p>
 
-<!-- CHARTS -->
+<!-- TOP CHARTS -->
 <div class="charts-grid">
   <div class="chart-card">
-    <div class="chart-label"><span style="background:#c05621"></span>health score</div>
-    <div class="chart-wrap"><canvas id="chartHealth" role="img" aria-label="Health scores by day">Health scores over time.</canvas></div>
+    <div class="chart-label"><span class="dot" style="background:#c05621"></span>health score</div>
+    <div class="chart-wrap"><canvas id="chartHealth"></canvas></div>
   </div>
   <div class="chart-card">
-    <div class="chart-label"><span style="background:#2563a8"></span>happiness score</div>
-    <div class="chart-wrap"><canvas id="chartHappiness" role="img" aria-label="Happiness scores by day">Happiness scores over time.</canvas></div>
+    <div class="chart-label"><span class="dot" style="background:#2563a8"></span>happiness score</div>
+    <div class="chart-wrap"><canvas id="chartHappiness"></canvas></div>
   </div>
   <div class="chart-card">
-    <div class="chart-label"><span style="background:#7c3aed"></span>confidence score</div>
-    <div class="chart-wrap"><canvas id="chartConfidence" role="img" aria-label="Confidence scores by day">Confidence scores over time.</canvas></div>
+    <div class="chart-label"><span class="dot" style="background:#7c3aed"></span>confidence score</div>
+    <div class="chart-wrap"><canvas id="chartConfidence"></canvas></div>
   </div>
   <div class="chart-card">
-    <div class="chart-label"><span style="background:#0f766e"></span>avg daily hours <span style="font-size:0.65rem;color:var(--text-faint)">(last 7 days)</span></div>
-    <div class="chart-wrap"><canvas id="chartHours" role="img" aria-label="Average daily hours over last 7 days rolling">Rolling 7-day average daily hours.</canvas></div>
+    <div class="chart-label">
+      <span class="dot" style="background:#0f766e"></span>work hours
+      <span class="dot" style="background:#0891b2;margin-left:4px"></span>ps hours
+      <span class="dot" style="background:#374151;margin-left:4px"></span>total
+      <span style="font-size:0.62rem;color:var(--text-faint);margin-left:4px">(7-day avg)</span>
+    </div>
+    <div class="chart-wrap"><canvas id="chartHours"></canvas></div>
   </div>
 </div>
 
-<!-- TABLE -->
+<!-- LAST 28 DAYS -->
+<div class="charts-grid" style="margin-bottom:1rem;">
+  <div class="chart-card">
+    <div class="chart-label"><span class="dot" style="background:#c05621"></span>health — last 28 days</div>
+    <div class="chart-wrap"><canvas id="chart28Health"></canvas></div>
+  </div>
+  <div class="chart-card">
+    <div class="chart-label"><span class="dot" style="background:#2563a8"></span>happiness — last 28 days</div>
+    <div class="chart-wrap"><canvas id="chart28Happiness"></canvas></div>
+  </div>
+  <div class="chart-card">
+    <div class="chart-label"><span class="dot" style="background:#7c3aed"></span>confidence — last 28 days</div>
+    <div class="chart-wrap"><canvas id="chart28Confidence"></canvas></div>
+  </div>
+  <div class="chart-card">
+    <div class="chart-label">
+      <span class="dot" style="background:#0f766e"></span>work
+      <span class="dot" style="background:#0891b2;margin-left:4px"></span>ps
+      <span class="dot" style="background:#374151;margin-left:4px"></span>total
+      <span style="font-size:0.62rem;color:var(--text-faint);margin-left:4px">— last 28 days</span>
+    </div>
+    <div class="chart-wrap"><canvas id="chart28Hours"></canvas></div>
+  </div>
+</div>
+
+<!-- REMINDERS -->
+<div class="reminders-card">
+  <div class="reminders-title">daily reminders</div>
+  <div class="reminders-list">
+    <div class="reminder-item"><span class="reminder-num">1.</span><span class="reminder-text">Accept the bad moments — they're part of it.</span></div>
+    <div class="reminder-item"><span class="reminder-num">2.</span><span class="reminder-text">Let go of what you can't control.</span></div>
+    <div class="reminder-item"><span class="reminder-num">3.</span><span class="reminder-text">Picture the best version of yourself, then act like it.</span></div>
+    <div class="reminder-item"><span class="reminder-num">4.</span><span class="reminder-text">Check your reminder app.</span></div>
+    <div class="reminder-item"><span class="reminder-num">5.</span><span class="reminder-text">Move your body today.</span></div>
+    <div class="reminder-item"><span class="reminder-num">6.</span><span class="reminder-text">You don't laugh because you're happy — you become happy because you laugh.</span></div>
+  </div>
+</div>
+
+<!-- LOG -->
 <div class="section-header">
   <span class="section-title">log</span>
   <button class="add-btn" onclick="addRow()">+ add row</button>
@@ -339,30 +187,18 @@
 
 <div class="table-wrap">
   <table>
-    <colgroup>
-      <col><col><col><col><col><col><col><col><col><col><col><col>
-    </colgroup>
+    <colgroup><col><col><col><col><col><col><col><col><col></colgroup>
     <thead>
       <tr class="group-row">
         <th colspan="2"></th>
-        <th colspan="3" class="scores-header">scores</th>
-        <th colspan="2" class="reminders-header">reminders</th>
-        <th colspan="3" class="checks-header">checks</th>
-        <th class="hours-header">hours</th>
+        <th colspan="3" class="g-scores">scores</th>
+        <th colspan="3" class="g-hours">hours</th>
         <th></th>
       </tr>
       <tr class="col-row">
-        <th>date</th>
-        <th>day</th>
-        <th>health</th>
-        <th>happiness</th>
-        <th>confidence</th>
-        <th>accept bad moments</th>
-        <th>think ideal → do it</th>
-        <th>checklist</th>
-        <th>exercise</th>
-        <th>reminder app</th>
-        <th>daily hour</th>
+        <th>date</th><th>day</th>
+        <th>health</th><th>happiness</th><th>confidence</th>
+        <th>work hrs</th><th>ps hrs</th><th>total hrs</th>
         <th></th>
       </tr>
     </thead>
@@ -371,295 +207,283 @@
 </div>
 
 <script>
-const DAYS = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+const DAYS   = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+const MONTHS = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
 const SCORE_COLS = ['health','happiness','confidence'];
-const BOOL_COLS = ['acceptBad','thinkIdeal','checklist','exercise','reminderApp'];
+const HOUR_COLS  = ['workHours','psHours','totalHours'];
+
+// ── Seed data ───────────────────────────────────────────────────────────────
+const SEED = [
+  { date:'4/12/26', health:2,    happiness:2,    confidence:2,    workHours:null, psHours:null, totalHours:6.75 },
+  { date:'4/13/26', health:2,    happiness:2,    confidence:2,    workHours:null, psHours:null, totalHours:8.5  },
+  { date:'4/14/26', health:2,    happiness:3,    confidence:3,    workHours:null, psHours:null, totalHours:7.5  },
+  { date:'4/15/26', health:null, happiness:null, confidence:null, workHours:null, psHours:null, totalHours:7    },
+  { date:'4/16/26', health:null, happiness:null, confidence:null, workHours:null, psHours:null, totalHours:9    },
+  { date:'4/17/26', health:null, happiness:null, confidence:null, workHours:null, psHours:null, totalHours:6.5  },
+  { date:'4/18/26', health:null, happiness:null, confidence:null, workHours:null, psHours:null, totalHours:0    },
+  { date:'4/19/26', health:null, happiness:null, confidence:null, workHours:null, psHours:null, totalHours:4.75 },
+  { date:'4/20/26', health:2,    happiness:4,    confidence:3,    workHours:null, psHours:null, totalHours:6.5  },
+  { date:'4/21/26', health:null, happiness:null, confidence:null, workHours:null, psHours:null, totalHours:8.25 },
+  { date:'4/22/26', health:null, happiness:null, confidence:null, workHours:null, psHours:null, totalHours:8.75 },
+  { date:'4/23/26', health:null, happiness:null, confidence:null, workHours:null, psHours:null, totalHours:5.5  },
+  { date:'4/24/26', health:null, happiness:null, confidence:null, workHours:null, psHours:null, totalHours:7    },
+  { date:'4/25/26', health:1,    happiness:1,    confidence:1,    workHours:null, psHours:null, totalHours:2.75 },
+  { date:'4/26/26', health:3,    happiness:3,    confidence:3,    workHours:null, psHours:null, totalHours:3.5  },
+  { date:'4/27/26', health:null, happiness:null, confidence:null, workHours:null, psHours:null, totalHours:8.3  },
+  { date:'4/28/26', health:3,    happiness:3,    confidence:3,    workHours:null, psHours:null, totalHours:7.5  },
+  { date:'4/29/26', health:3,    happiness:2,    confidence:4,    workHours:null, psHours:null, totalHours:8    },
+  { date:'4/30/26', health:2,    happiness:2,    confidence:2,    workHours:null, psHours:null, totalHours:8.5  },
+  { date:'5/1/26',  health:null, happiness:null, confidence:null, workHours:null, psHours:null, totalHours:null },
+  { date:'5/2/26',  health:1,    happiness:1,    confidence:2,    workHours:null, psHours:null, totalHours:null },
+];
 
 let rows = [];
 
 function loadData() {
   try {
-    const saved = localStorage.getItem('dailyTrackerRows');
-    if (saved) rows = JSON.parse(saved);
-  } catch(e) { rows = []; }
-  if (rows.length === 0) {
-    rows = [
-      { date:'4/12/26', health:2, happiness:2, confidence:2, acceptBad:'Yes', thinkIdeal:'Yes', checklist:'Yes', exercise:'No', reminderApp:'No', dailyHour:6.75 },
-      { date:'4/13/26', health:2, happiness:2, confidence:2, acceptBad:'Yes', thinkIdeal:'Yes', checklist:'Yes', exercise:'Yes', reminderApp:'No', dailyHour:8.5 },
-      { date:'4/14/26', health:2, happiness:3, confidence:3, acceptBad:'Yes', thinkIdeal:'Yes', checklist:'Yes', exercise:'No', reminderApp:'No', dailyHour:7.5 },
-      { date:'4/15/26', health:null, happiness:null, confidence:null, acceptBad:'', thinkIdeal:'', checklist:'', exercise:'', reminderApp:'', dailyHour:7 },
-      { date:'4/16/26', health:null, happiness:null, confidence:null, acceptBad:'', thinkIdeal:'', checklist:'', exercise:'', reminderApp:'', dailyHour:9 },
-      { date:'4/17/26', health:null, happiness:null, confidence:null, acceptBad:'', thinkIdeal:'', checklist:'', exercise:'', reminderApp:'', dailyHour:6.5 },
-      { date:'4/18/26', health:null, happiness:null, confidence:null, acceptBad:'', thinkIdeal:'', checklist:'', exercise:'', reminderApp:'', dailyHour:0 },
-      { date:'4/19/26', health:null, happiness:null, confidence:null, acceptBad:'', thinkIdeal:'', checklist:'', exercise:'', reminderApp:'', dailyHour:4.75 },
-      { date:'4/20/26', health:2, happiness:4, confidence:3, acceptBad:'Yes', thinkIdeal:'Yes', checklist:'Yes', exercise:'No', reminderApp:'No', dailyHour:6.5 },
-      { date:'4/21/26', health:null, happiness:null, confidence:null, acceptBad:'', thinkIdeal:'', checklist:'', exercise:'', reminderApp:'', dailyHour:8.25 },
-      { date:'4/22/26', health:null, happiness:null, confidence:null, acceptBad:'', thinkIdeal:'', checklist:'', exercise:'', reminderApp:'', dailyHour:8.75 },
-      { date:'4/23/26', health:null, happiness:null, confidence:null, acceptBad:'', thinkIdeal:'', checklist:'', exercise:'', reminderApp:'', dailyHour:5.5 },
-      { date:'4/24/26', health:null, happiness:null, confidence:null, acceptBad:'', thinkIdeal:'', checklist:'', exercise:'', reminderApp:'', dailyHour:7 },
-      { date:'4/25/26', health:1, happiness:1, confidence:1, acceptBad:'Yes', thinkIdeal:'Yes', checklist:'No', exercise:'No', reminderApp:'', dailyHour:2.75 },
-    ];
-  }
+    const s = localStorage.getItem('dailyTrackerRows_v3');
+    if (s) { rows = JSON.parse(s); return; }
+  } catch(e) {}
+  rows = SEED.map(r => ({ ...r }));
+  saveData();
 }
-
 function saveData() {
-  try { localStorage.setItem('dailyTrackerRows', JSON.stringify(rows)); } catch(e) {}
+  try { localStorage.setItem('dailyTrackerRows_v3', JSON.stringify(rows)); } catch(e) {}
 }
 
+// ── Date utils ──────────────────────────────────────────────────────────────
 function parseDate(str) {
-  const parts = str.split('/');
-  if (parts.length !== 3) return null;
-  let [m, d, y] = parts.map(Number);
+  const p = str.split('/');
+  if (p.length !== 3) return null;
+  let [m,d,y] = p.map(Number);
   if (y < 100) y += 2000;
-  return new Date(y, m - 1, d);
+  return new Date(y, m-1, d);
 }
-
-function formatDate(d) {
-  return `${d.getMonth()+1}/${d.getDate()}/${String(d.getFullYear()).slice(2)}`;
+function formatDate(d) { return `${d.getMonth()+1}/${d.getDate()}/${String(d.getFullYear()).slice(2)}`; }
+function toISO(str) {
+  const p = str.split('/');
+  if (p.length !== 3) return null;
+  let [m,d,y] = p.map(Number);
+  if (y < 100) y += 2000;
+  return `${y}-${String(m).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
 }
-
-function getDayName(dateStr) {
-  const d = parseDate(dateStr);
-  if (!d) return '';
-  return DAYS[d.getDay()];
-}
+function getDayName(str) { const d = parseDate(str); return d ? DAYS[d.getDay()] : ''; }
 
 function nextDate() {
-  if (rows.length === 0) return formatDate(new Date());
-  const last = parseDate(rows[rows.length-1].date);
-  if (!last) return formatDate(new Date());
-  const next = new Date(last);
-  next.setDate(next.getDate() + 1);
+  if (!rows.length) return formatDate(new Date());
+  const sorted = [...rows].sort((a,b) => parseDate(a.date)-parseDate(b.date));
+  const last = parseDate(sorted[sorted.length-1].date);
+  const next = new Date(last); next.setDate(next.getDate()+1);
   return formatDate(next);
 }
 
+// ── CRUD ────────────────────────────────────────────────────────────────────
 function addRow() {
-  rows.push({
-    date: nextDate(),
-    health: null, happiness: null, confidence: null,
-    acceptBad: '', thinkIdeal: '', checklist: '', exercise: '', reminderApp: '',
-    dailyHour: null
-  });
-  saveData();
-  renderTable();
-  updateCharts();
-  setTimeout(() => {
-    const lastRow = document.querySelector('#tableBody tr:last-child');
-    if (lastRow) lastRow.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-  }, 50);
+  rows.push({ date: nextDate(), health:null, happiness:null, confidence:null, workHours:null, psHours:null, totalHours:null });
+  saveData(); renderTable(); updateCharts();
 }
 
-function deleteRow(idx) {
-  rows.splice(idx, 1);
-  saveData();
-  renderTable();
-  updateCharts();
+function deleteRow(di) {
+  const display = [...rows].sort((a,b) => parseDate(b.date)-parseDate(a.date));
+  const ri = rows.findIndex(r => r.date === display[di].date);
+  if (ri !== -1) rows.splice(ri, 1);
+  saveData(); renderTable(); updateCharts();
 }
 
+// ── Render helpers ──────────────────────────────────────────────────────────
 function renderScore(val) {
   if (val === null || val === undefined || val === '') return '<span class="empty-hint">—</span>';
   const n = Number(val);
   return `<span class="score-dot score-${n}">${n}</span>`;
 }
-
-function renderBool(val) {
-  if (!val) return '<span class="empty-hint">—</span>';
-  const cls = val === 'Yes' ? 'yes' : 'no';
-  return `<span class="badge ${cls}">${val}</span>`;
+function renderHour(val) {
+  return (val !== null && val !== undefined && val !== '') ? val : '<span class="empty-hint">—</span>';
 }
-
-function makeScoreInput(rowIdx, field, val) {
-  const opts = ['', '1', '2', '3', '4', '5'].map(o =>
-    `<option value="${o}" ${String(val)===o?'selected':''}>${o||'—'}</option>`
-  ).join('');
-  return `<select onchange="updateField(${rowIdx},'${field}',this.value)" onblur="finishEdit(${rowIdx})" autofocus>${opts}</select>`;
+function makeScoreSelect(di, field, val) {
+  const opts = ['','1','2','3','4','5'].map(o =>
+    `<option value="${o}" ${String(val)===o?'selected':''}>${o||'—'}</option>`).join('');
+  return `<select onchange="updateField(${di},'${field}',this.value)" onblur="finishEdit()" autofocus>${opts}</select>`;
 }
-
-function makeBoolSelect(rowIdx, field, val) {
-  const opts = ['', 'Yes', 'No'].map(o =>
-    `<option value="${o}" ${val===o?'selected':''}>${o||'—'}</option>`
-  ).join('');
-  return `<select onchange="updateField(${rowIdx},'${field}',this.value)" onblur="finishEdit(${rowIdx})">${opts}</select>`;
-}
-
-function makeHourInput(rowIdx, val) {
-  const v = (val === null || val === undefined) ? '' : val;
-  return `<input type="number" min="0" max="24" step="0.25" value="${v}" placeholder="0-24"
-    onchange="updateField(${rowIdx},'dailyHour',this.value)"
-    onblur="finishEdit(${rowIdx})"
+function makeHourInput(di, field, val) {
+  const v = (val !== null && val !== undefined) ? val : '';
+  return `<input type="number" min="0" max="24" step="0.25" value="${v}" placeholder="0–24"
+    onchange="updateField(${di},'${field}',this.value)"
+    onblur="finishEdit()"
     onkeydown="if(event.key==='Enter'||event.key==='Tab'){this.blur()}"
     autofocus>`;
 }
 
 let editingCell = null;
+function startEdit(di, field) { editingCell = { di, field }; renderTable(); }
+function finishEdit() { editingCell = null; renderTable(); updateCharts(); }
 
-function startEdit(rowIdx, field) {
-  editingCell = { rowIdx, field };
-  renderTable(rowIdx);
-}
-
-function finishEdit(rowIdx) {
-  editingCell = null;
-  renderTable();
-  updateCharts();
-}
-
-function updateField(rowIdx, field, value) {
+function updateField(di, field, value) {
+  const display = [...rows].sort((a,b) => parseDate(b.date)-parseDate(a.date));
+  const ri = rows.findIndex(r => r.date === display[di].date);
+  if (ri === -1) return;
   if (SCORE_COLS.includes(field)) {
     const n = parseInt(value);
-    rows[rowIdx][field] = (isNaN(n) || value === '') ? null : Math.min(5, Math.max(1, n));
-  } else if (field === 'dailyHour') {
-    const n = parseFloat(value);
-    rows[rowIdx][field] = (isNaN(n) || value === '') ? null : Math.round(n * 10) / 10;
+    rows[ri][field] = (isNaN(n) || value==='') ? null : Math.min(5, Math.max(1, n));
   } else {
-    rows[rowIdx][field] = value;
+    const n = parseFloat(value);
+    rows[ri][field] = (isNaN(n) || value==='') ? null : Math.round(n*10)/10;
   }
   saveData();
 }
 
-function renderTable(activeRow) {
+function renderTable() {
   const tbody = document.getElementById('tableBody');
+  const display = [...rows].sort((a,b) => parseDate(b.date)-parseDate(a.date));
   const colMap = [
-    { field:'health', type:'score' },
-    { field:'happiness', type:'score' },
+    { field:'health',     type:'score' },
+    { field:'happiness',  type:'score' },
     { field:'confidence', type:'score' },
-    { field:'acceptBad', type:'bool' },
-    { field:'thinkIdeal', type:'bool' },
-    { field:'checklist', type:'bool' },
-    { field:'exercise', type:'bool' },
-    { field:'reminderApp', type:'bool' },
-    { field:'dailyHour', type:'hour' },
+    { field:'workHours',  type:'hour'  },
+    { field:'psHours',    type:'hour'  },
+    { field:'totalHours', type:'hour'  },
   ];
 
-  tbody.innerHTML = rows.map((row, i) => {
-    const isEditing = activeRow === i;
+  tbody.innerHTML = display.map((row, i) => {
     const cells = colMap.map(({ field, type }) => {
-      const isActive = editingCell && editingCell.rowIdx === i && editingCell.field === field;
-      let content;
-      if (isActive) {
-        if (type === 'score') content = makeScoreInput(i, field, row[field]);
-        else if (type === 'bool') content = makeBoolSelect(i, field, row[field]);
-        else content = makeHourInput(i, row[field]);
-        return `<td>${content}</td>`;
+      const active = editingCell && editingCell.di===i && editingCell.field===field;
+      if (active) {
+        const inp = type==='score' ? makeScoreSelect(i, field, row[field]) : makeHourInput(i, field, row[field]);
+        return `<td>${inp}</td>`;
       }
-      if (type === 'score') content = renderScore(row[field]);
-      else if (type === 'bool') content = renderBool(row[field]);
-      else content = row[field] !== null && row[field] !== undefined ? row[field] : '<span class="empty-hint">—</span>';
+      const content = type==='score' ? renderScore(row[field]) : renderHour(row[field]);
       return `<td><div class="cell-display" onclick="startEdit(${i},'${field}')">${content}</div></td>`;
     }).join('');
 
-    return `<tr${isEditing ? ' class="editing"' : ''}>
+    return `<tr>
       <td class="date-cell"><div class="cell-display">${row.date}</div></td>
       <td class="day-cell"><div class="cell-display">${getDayName(row.date)}</div></td>
       ${cells}
-      <td><button class="del-btn" onclick="deleteRow(${i})" title="delete row">×</button></td>
+      <td><button class="del-btn" onclick="deleteRow(${i})">×</button></td>
     </tr>`;
   }).join('');
 }
 
-// ── Charts ─────────────────────────────────────────────────────────────────
-
+// ── Charts ──────────────────────────────────────────────────────────────────
 let charts = {};
 
-function toISO(dateStr) {
-  const parts = dateStr.split('/');
-  if (parts.length !== 3) return null;
-  let [m, d, y] = parts.map(Number);
-  if (y < 100) y += 2000;
-  return `${y}-${String(m).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
-}
-
-const timeXAxis = {
+const baseTimeX = {
   type: 'time',
   time: { unit: 'day', tooltipFormat: 'MMM d', displayFormats: { day: 'M/d' } },
-  ticks: { font: { family: 'DM Mono', size: 10 }, color: '#888', maxRotation: 45, autoSkip: true, maxTicksLimit: 10 },
-  grid: { display: false },
-  border: { display: false }
+  ticks: { font: { family:'DM Mono', size:10 }, color:'#888', maxRotation:45, autoSkip:true, maxTicksLimit:10 },
+  grid: { display:false }, border: { display:false }
+};
+const scoreY = {
+  min: 0, max: 5,
+  ticks: { stepSize:1, font:{ family:'DM Mono', size:10 }, color:'#888' },
+  grid: { color:'rgba(128,128,128,0.08)' }, border:{ display:false }
+};
+const hoursY = {
+  min: 0,
+  ticks: { font:{ family:'DM Mono', size:10 }, color:'#888', callback: v => v+'h' },
+  grid: { color:'rgba(128,128,128,0.08)' }, border:{ display:false }
 };
 
-function buildScoreChart(id, field, color) {
-  const data = rows
-    .filter(r => r[field] !== null && r[field] !== undefined && r[field] !== '')
-    .map(r => ({ x: toISO(r.date), y: Number(r[field]) }))
-    .filter(p => p.x);
+function sortedRows() { return [...rows].sort((a,b) => parseDate(a.date)-parseDate(b.date)); }
 
-  if (charts[id]) { charts[id].destroy(); }
+function buildScoreChart(id, field, color) {
+  const data = sortedRows()
+    .filter(r => r[field] !== null && r[field] !== undefined)
+    .map(r => ({ x: toISO(r.date), y: Number(r[field]) })).filter(p => p.x);
+
+  if (charts[id]) charts[id].destroy();
   charts[id] = new Chart(document.getElementById(id), {
     type: 'line',
-    data: {
-      datasets: [{
-        data,
-        borderColor: color,
-        backgroundColor: color + '22',
-        borderWidth: 2,
-        pointRadius: 4,
-        pointBackgroundColor: color,
-        pointBorderColor: '#fff',
-        pointBorderWidth: 1.5,
-        fill: true,
-        tension: 0.35
-      }]
-    },
-    options: {
-      responsive: true,
-      maintainAspectRatio: false,
-      plugins: { legend: { display: false }, tooltip: { callbacks: { label: c => `score: ${c.parsed.y}` } } },
-      scales: {
-        y: { min: 0, max: 5, ticks: { stepSize: 1, font: { family: 'DM Mono', size: 10 }, color: '#888' }, grid: { color: 'rgba(128,128,128,0.08)' }, border: { display: false } },
-        x: timeXAxis
-      }
+    data: { datasets: [{ data, borderColor:color, backgroundColor:color+'22', borderWidth:2, pointRadius:4, pointBackgroundColor:color, pointBorderColor:'#fff', pointBorderWidth:1.5, fill:true, tension:0.35 }] },
+    options: { responsive:true, maintainAspectRatio:false,
+      plugins:{ legend:{display:false}, tooltip:{ callbacks:{ label: c => `score: ${c.parsed.y}` } } },
+      scales:{ y: scoreY, x: baseTimeX }
     }
   });
 }
 
-function buildHoursChart() {
-  const withHours = rows.map(r => ({
-    iso: toISO(r.date),
-    hour: (r.dailyHour !== null && r.dailyHour !== undefined) ? Number(r.dailyHour) : null
-  })).filter(r => r.iso);
-
-  const data = withHours.map((r, i) => {
-    const win = withHours.slice(Math.max(0, i - 6), i + 1);
-    const valid = win.filter(w => w.hour !== null);
-    if (valid.length === 0) return null;
-    const avg = valid.reduce((s, w) => s + w.hour, 0) / valid.length;
-    return { x: r.iso, y: Math.round(avg * 10) / 10 };
+// Rolling 7-day avg for a given hour field
+function rollingAvg(field) {
+  const sr = sortedRows();
+  const pts = sr.map(r => ({ iso: toISO(r.date), h: r[field] !== null && r[field] !== undefined ? Number(r[field]) : null })).filter(r=>r.iso);
+  return pts.map((r,i) => {
+    const win = pts.slice(Math.max(0,i-6),i+1).filter(w=>w.h!==null);
+    if (!win.length) return null;
+    return { x: r.iso, y: Math.round(win.reduce((s,w)=>s+w.h,0)/win.length*10)/10 };
   }).filter(Boolean);
+}
 
-  if (charts['chartHours']) { charts['chartHours'].destroy(); }
+function buildHoursChart() {
+  const workData  = rollingAvg('workHours');
+  const psData    = rollingAvg('psHours');
+  const totalData = rollingAvg('totalHours');
+
+  if (charts['chartHours']) charts['chartHours'].destroy();
   charts['chartHours'] = new Chart(document.getElementById('chartHours'), {
     type: 'line',
-    data: {
-      datasets: [{
-        data,
-        borderColor: '#0f766e',
-        backgroundColor: '#0f766e22',
-        borderWidth: 2,
-        pointRadius: 4,
-        pointBackgroundColor: '#0f766e',
-        pointBorderColor: '#fff',
-        pointBorderWidth: 1.5,
-        fill: true,
-        tension: 0.35
-      }]
-    },
-    options: {
-      responsive: true,
-      maintainAspectRatio: false,
-      plugins: { legend: { display: false }, tooltip: { callbacks: { label: c => `7d avg: ${c.parsed.y}h` } } },
-      scales: {
-        y: { min: 0, ticks: { font: { family: 'DM Mono', size: 10 }, color: '#888', callback: v => v + 'h' }, grid: { color: 'rgba(128,128,128,0.08)' }, border: { display: false } },
-        x: timeXAxis
-      }
+    data: { datasets: [
+      { label:'work',  data:workData,  borderColor:'#0f766e', backgroundColor:'#0f766e18', borderWidth:2, pointRadius:3, pointBackgroundColor:'#0f766e', pointBorderColor:'#fff', pointBorderWidth:1, fill:false, tension:0.35 },
+      { label:'ps',    data:psData,    borderColor:'#0891b2', backgroundColor:'#0891b218', borderWidth:2, pointRadius:3, pointBackgroundColor:'#0891b2', pointBorderColor:'#fff', pointBorderWidth:1, fill:false, tension:0.35 },
+      { label:'total', data:totalData, borderColor:'#374151', backgroundColor:'#37415118', borderWidth:2, pointRadius:3, pointBackgroundColor:'#374151', pointBorderColor:'#fff', pointBorderWidth:1, fill:false, tension:0.35 },
+    ]},
+    options: { responsive:true, maintainAspectRatio:false,
+      plugins:{ legend:{display:false}, tooltip:{ mode:'index', intersect:false, callbacks:{ label: c => `${c.dataset.label}: ${c.parsed.y}h` } } },
+      scales:{ y: hoursY, x: baseTimeX }
+    }
+  });
+}
+
+// ── Last 28 days ─────────────────────────────────────────────────────────────
+function last28Rows() {
+  const sr = sortedRows();
+  return sr.slice(Math.max(0, sr.length - 28));
+}
+
+function build28ScoreChart(id, field, color) {
+  const data = last28Rows()
+    .filter(r => r[field] !== null && r[field] !== undefined)
+    .map(r => ({ x: toISO(r.date), y: Number(r[field]) })).filter(p => p.x);
+
+  if (charts[id]) charts[id].destroy();
+  charts[id] = new Chart(document.getElementById(id), {
+    type: 'line',
+    data: { datasets: [{ data, borderColor:color, backgroundColor:color+'22', borderWidth:2, pointRadius:4, pointBackgroundColor:color, pointBorderColor:'#fff', pointBorderWidth:1.5, fill:true, tension:0.35 }] },
+    options: { responsive:true, maintainAspectRatio:false,
+      plugins:{ legend:{display:false}, tooltip:{ callbacks:{ label: c=>`score: ${c.parsed.y}` } } },
+      scales:{ y: scoreY, x: baseTimeX }
+    }
+  });
+}
+
+function build28HoursChart() {
+  function pts(field) {
+    return last28Rows()
+      .filter(r => r[field] !== null && r[field] !== undefined)
+      .map(r => ({ x: toISO(r.date), y: Number(r[field]) })).filter(p => p.x);
+  }
+  if (charts['chart28Hours']) charts['chart28Hours'].destroy();
+  charts['chart28Hours'] = new Chart(document.getElementById('chart28Hours'), {
+    type: 'line',
+    data: { datasets: [
+      { label:'work',  data:pts('workHours'),  borderColor:'#0f766e', backgroundColor:'transparent', borderWidth:2, pointRadius:3, pointBackgroundColor:'#0f766e', pointBorderColor:'#fff', pointBorderWidth:1, fill:false, tension:0.35 },
+      { label:'ps',    data:pts('psHours'),    borderColor:'#0891b2', backgroundColor:'transparent', borderWidth:2, pointRadius:3, pointBackgroundColor:'#0891b2', pointBorderColor:'#fff', pointBorderWidth:1, fill:false, tension:0.35 },
+      { label:'total', data:pts('totalHours'), borderColor:'#374151', backgroundColor:'#37415112',   borderWidth:2, pointRadius:3, pointBackgroundColor:'#374151', pointBorderColor:'#fff', pointBorderWidth:1, fill:false, tension:0.35 },
+    ]},
+    options: { responsive:true, maintainAspectRatio:false,
+      plugins:{ legend:{display:false}, tooltip:{ mode:'index', intersect:false, callbacks:{ label: c=>`${c.dataset.label}: ${c.parsed.y}h` } } },
+      scales:{ y: hoursY, x: baseTimeX }
     }
   });
 }
 
 function updateCharts() {
-  buildScoreChart('chartHealth', 'health', '#c05621');
-  buildScoreChart('chartHappiness', 'happiness', '#2563a8');
-  buildScoreChart('chartConfidence', 'confidence', '#7c3aed');
+  buildScoreChart('chartHealth',     'health',    '#c05621');
+  buildScoreChart('chartHappiness',  'happiness', '#2563a8');
+  buildScoreChart('chartConfidence', 'confidence','#7c3aed');
   buildHoursChart();
+  build28ScoreChart('chart28Health',     'health',    '#c05621');
+  build28ScoreChart('chart28Happiness',  'happiness', '#2563a8');
+  build28ScoreChart('chart28Confidence', 'confidence','#7c3aed');
+  build28HoursChart();
 }
 
 loadData();
